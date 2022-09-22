@@ -44,13 +44,14 @@ import Error_while_uploading_File from '@salesforce/label/c.Error_while_uploadin
 
 
 export default class GtmLeadCustomer extends LightningElement {
-  
+  @api selectedCountry1;
 
   @track customer = {
     id:'',
     name:''
     }
     @track leadAccData=[];
+   
     instrustions = '';
     
    @track customerTypeForFilter='';
@@ -84,8 +85,6 @@ export default class GtmLeadCustomer extends LightningElement {
   fileReader;
   content;
   MAX_FILE_SIZE = 1500000;
-
-
 
   accSelectedData =[];
  
@@ -412,9 +411,10 @@ saveToFile() {
       this.fileName = this.fileName + ' - Uploaded Successfully';
       this.isTrue = false;
       this.showLoadingSpinner = false;
+       //Changed Title from Success to Alert by Priyanka(SKI)
       this.dispatchEvent(
           new ShowToastEvent({
-              title: 'Success!!',
+              title: 'Alert!!',
               message: this.file.name + ' - '+this.label.Uploaded_Successfully,
               variant: 'success',
           }),
@@ -563,7 +563,7 @@ handleDownload(event){
     let selvalue = event.target.value;
     
     accObj.ownerShipName = selvalue;
-
+      
     let tmData = JSON.parse(JSON.stringify(this.leadAccData));
     this.leadAccData = tmData;
 
@@ -616,7 +616,8 @@ handleDownload(event){
         if (this.leadAccData[i].isSelected) {
           this.accSelectedData.push(this.leadAccData[i]);
         }
-      }  
+      }
+     
 
       console.log('selected account for check box true ',this.accSelectedData);
       this.showLoadingSpinner = true;   
@@ -629,7 +630,8 @@ handleDownload(event){
             
             
             const toastEvent = new ShowToastEvent({
-              title:'Success!',
+              //Changed Title from Success to Alert by Priyanka(SKI)
+              title:'Alert!',
               message:this.label.Account_Saved_successfully,
               variant:'success'
             });
@@ -655,8 +657,7 @@ handleDownload(event){
       }
 
 
-     
-
+    
    }
 
 

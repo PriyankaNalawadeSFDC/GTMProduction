@@ -8,7 +8,8 @@
 /* MODIFICATION LOG
 * Version          Developer          Date(MM/DD/YYYY)      Description
 *-------------------------------------------------------------------------------------------
-*  1.0              Sandeep              03/14/2022           Initial Creation                                                      
+*  1.0              Sandeep              03/14/2022           Initial Creation                                              
+*  1.1              Priyanka              08/26/2022           Modified 
 *******************************************************************************************/
 public without sharing class GTMPathFinderHelper {
     private static String fiscalyear = GTMPathFinder.fiscalyear;
@@ -47,9 +48,15 @@ public without sharing class GTMPathFinderHelper {
         List<Account> leadCustomerList = new List<Account>();
         List<Account> nonLeadCustomerList = new List<Account>();
         if(Schema.sObjectType.Account.isAccessible()){
-            leadCustomerList = [select Id,Name,Lead_Customer_Type__c from Account where Sales_Org_Code__c=:salesorgCode and Account_Type__c='Sold To Party' and recordType.Id=:leadcustomerRecordType and Lead_Customer_Ownership__c=:userInfo.getUserId()];
+            //Fetched SAP code from account by Priyanka(SKI)
+            leadCustomerList = [select Id,Name,Lead_Customer_Type__c,SAP_Code__c from Account where Sales_Org_Code__c=:salesorgCode and Account_Type__c='Sold To Party' and recordType.Id=:leadcustomerRecordType and Lead_Customer_Ownership__c=:userInfo.getUserId()];
             System.debug('Lead Customer '+leadCustomerList);
-            nonLeadCustomerList = [select Id,Name,Lead_Customer_Type__c from Account where Sales_Org_Code__c=:salesorgCode and Account_Type__c='Sold To Party' and Lead_Customer__c=null and Lead_Customer_Ownership__c=:userInfo.getUserId() and recordTypeId=:nonleadcustomerRecordType];
+            //Checking Sales Org for Brazil for "001" as Non lead Customers by Priyanka(SKI)
+            if(salesOrg.Sales_Org_Code__c!='5191'){
+            nonLeadCustomerList = [select Id,Name,Lead_Customer_Type__c,SAP_Code__c from Account where Sales_Org_Code__c=:salesorgCode and Account_Type__c='Sold To Party' and Lead_Customer__c=null and Lead_Customer_Ownership__c=:userInfo.getUserId() and recordTypeId=:nonleadcustomerRecordType];
+            }else{
+                nonLeadCustomerList = [select Id,Name,Lead_Customer_Type__c,SAP_Code__c from Account where Sales_Org_Code__c=:salesOrg.Sales_Org_Code__c and Account_Type__c='Sold To Party' and Lead_Customer__c='001' and recordTypeId=:nonleadcustomerRecordType  and Lead_Customer_Ownership__c=:userInfo.getUserId()];
+            }
             System.debug('non lead '+nonLeadCustomerList);
             gtmCustomers.addAll(leadCustomerList);
             gtmCustomers.addAll(nonLeadCustomerList);
@@ -69,10 +76,13 @@ public without sharing class GTMPathFinderHelper {
             gtmd.GTM_Customer_Type__c = acc.Lead_Customer_Type__c;
             gtmd.GTM__c = gtm.Id;
             gtmd.Sales_Org__c = salesorg.Id;
+            gtmd.Combination_key__c = acc.SAP_Code__c+'PotentialProfile'+gtm.Fiscal_Year__c; //Combination key logic By Priyanka SKI
             gtmDetails.add(gtmd);
+            System.debug('Combination Key PotentialProfile '+gtmd.Combination_key__c);
         }
-        System.debug('PotentialProfile '+gtmDetails.size());
-        if(Schema.sObjectType.GTM_Details__c.isCreateable() && isSalesRep){
+        System.debug('PotentialProfile size'+gtmDetails.size());
+        
+       if(Schema.sObjectType.GTM_Details__c.isCreateable() && isSalesRep){
             insert gtmDetails;
         }
     }
@@ -84,16 +94,19 @@ public without sharing class GTMPathFinderHelper {
         User userDetails = new User();
         if(Schema.sObjectType.GTM__c.isAccessible() && Schema.sObjectType.User.isAccessible()){
             gtms = [SELECT ID,Name,Fiscal_Year__c from GTM__c where Fiscal_Year__c=:year and Sales_Org__c=:salesOrg.Id and Sales_Rep__c=:userId];
-            userDetails =[SELECT Id, Name, Email, Profile.Name, UserRole.Id,UserRole.Name FROM User where Id=:userId ];
+            //fetched UGDN from User By Priyanka(SKI)
+            userDetails =[SELECT Id, Name, Email, Profile.Name, UserRole.Id,UserRole.Name,UGDN_Number__c FROM User where Id=:userId ];
         }
         GTM__c gtm = new GTM__c();
-        if(gtms.size()==0){
+        //validating year by Priyanka(SKI)
+        if(gtms.size()==0 && validateYear(year)){
             gtm.Fiscal_Year__c = year;
             gtm.GTM_Status__c = 'Draft';
             gtm.Sales_Org__c = salesOrg.Id;
             gtm.Sales_Rep__c = userInfo.getUserId();
             gtm.Sales_Rep_Name__c = userInfo.getName();
             gtm.Role__c = userDetails.UserRole.Name;
+            gtm.Combination_key__c = userDetails.UGDN_Number__c+year+salesOrg.Sales_Org_Code__c; //Combination Key Logic By Priyanka(SKI)
             if(Schema.sObjectType.GTM__c.isCreateable()){
                 System.debug('Create GTM');
                 insert gtm;
@@ -126,6 +139,7 @@ public without sharing class GTMPathFinderHelper {
                 gtmDetail.Sales_Org__c = salesOrg.Id;
                 gtmDetail.GTM__c = gtms[0].Id;
                 gtmDetail.GTM_Details__c = mapPotentialProfile.get(acc.Id).Id;
+                gtmDetail.Combination_key__c = acc.SAP_Code__c+'ProductCategoryAllocation'+pc.Product_Category_Code__c+gtms[0].Fiscal_Year__c; //Combination Key Logic By Priyanka(SKI)
                 gtmDetails.add(gtmDetail);
             }
         }
@@ -144,15 +158,18 @@ public without sharing class GTMPathFinderHelper {
         Id userId = userInfo.getUserId();
         List<GTM__c> gtms = new  List<GTM__c>();
         gtms = [SELECT ID,Name,Fiscal_Year__c from GTM__c where Fiscal_Year__c=:year and Sales_Org__c=:salesOrg.Id and Sales_Rep__c=:userId];
-        User userDetails =[SELECT Id, Name, Email, Profile.Name, UserRole.Id,UserRole.Name FROM User where Id=:userId ];
+        //Fetched UGDN form CombinationKey logic by Priyanka(SKI)
+        User userDetails =[SELECT Id, Name, Email, Profile.Name, UserRole.Id,UserRole.Name,UGDN_Number__c FROM User where Id=:userId ];
         GTM__c gtm = new GTM__c();
-        if(gtms.size()==0){
+        //Validating Year By Priyanka(SKI)
+        if(gtms.size()==0 && validateYear(year)){
             gtm.Fiscal_Year__c = year;
             gtm.GTM_Status__c = 'Draft';
             gtm.Sales_Org__c = salesOrg.Id;
             gtm.Sales_Rep__c = userInfo.getUserId();
             gtm.Sales_Rep_Name__c = userInfo.getName();
             gtm.Role__c = userDetails.UserRole.Name; //TODO: Need to set user role using Query
+            gtm.Combination_key__c = userDetails.UGDN_Number__c+year+salesOrg.Sales_Org_Code__c; //Combination Key Logic By Priyanka(SKI)
             if(Schema.sObjectType.GTM__c.isCreateable() && !String.isEmpty(year)){
                 System.debug('Create GTM');//TODO
                 insert gtm;
@@ -184,7 +201,10 @@ public without sharing class GTMPathFinderHelper {
                 gtmDetail.Sales_Org__c = salesOrg.Id;
                 gtmDetail.GTM__c = gtms[0].Id;
                 gtmDetail.GTM_Details__c = mapPotentialProfile.get(acc.Id).Id;
+                gtmDetail.Combination_key__c = acc.SAP_Code__c+'CropAllocation'+crop.Crop_Code__c+gtms[0].Fiscal_Year__c; //Combination Key Logic By Priyanka(SKI)
+        
                 gtmDetails.add(gtmDetail);
+                System.debug('Crop Allocation '+gtmDetail.Combination_key__c);
             }
         }
         if(Schema.sObjectType.GTM_Details__c.isCreateable() && isSalesRep){
@@ -220,6 +240,7 @@ public without sharing class GTMPathFinderHelper {
            gtmd.GTM_Customer_Type__c = acc.Lead_Customer_Type__c;
            gtmd.GTM__c = gtm.Id;
            gtmd.Sales_Org__c = salesorg.Id;
+           gtmd.Combination_key__c = acc.SAP_Code__c+'PotentialProfile'+gtm.Fiscal_Year__c; //Combination Key Logic By Priyanka(SKI)
            gtmDetails.add(gtmd);
        }
        if(isSalesRep){
@@ -242,6 +263,7 @@ public without sharing class GTMPathFinderHelper {
                gtmDetail.Sales_Org__c = salesOrg.Id;
                gtmDetail.GTM__c = gtm.Id;
                gtmDetail.GTM_Details__c = mapPotentialProfile.get(acc.Id).Id;
+               gtmDetail.Combination_key__c = acc.SAP_Code__c+'CropAllocation'+crop.Crop_Code__c+gtm.Fiscal_Year__c; //Combination Key Logic By Priyanka(SKI)
                gtmDetails.add(gtmDetail);
            }
        }
@@ -262,6 +284,7 @@ public without sharing class GTMPathFinderHelper {
                gtmDetail.Sales_Org__c = salesOrg.Id;
                gtmDetail.GTM__c = gtm.Id;
                gtmDetail.GTM_Details__c = mapPotentialProfile.get(acc.Id).Id;
+               gtmDetail.Combination_key__c = acc.SAP_Code__c+'ProductCategoryAllocation'+pc.Product_Category_Code__c+gtm.Fiscal_Year__c; //Combination Key Logic By Priyanka(SKI)
                gtmDetails.add(gtmDetail);
            }
        }
@@ -278,6 +301,7 @@ public without sharing class GTMPathFinderHelper {
            gtmd.GTM__c=gtm.Id;
            gtmd.Sales_Org__c=salesOrg.Id;
            gtmd.GTM_Details__c = mapPotentialProfile.get(acc.Id).Id;
+           gtmd.Combination_key__c = acc.SAP_Code__c+'Competition'+gtm.Fiscal_Year__c; //Combination Key Logic By Priyanka(SKI)
            gtmDetails.add(gtmd);
        }
        if(isSalesRep){
@@ -293,6 +317,7 @@ public without sharing class GTMPathFinderHelper {
            gtmDetailsTemp.Sales_Org__c = salesorg.Id;
            gtmDetailsTemp.GTM__c = gtm.Id;
            gtmDetailsTemp.GTM_Details__c = mapPotentialProfile.get(acc.Id).Id;
+           gtmDetailsTemp.Combination_key__c = acc.SAP_Code__c+'Outlook'+gtm.Fiscal_Year__c; //Combination Key Logic By Priyanka(SKI)
            gtmDetails.add(gtmDetailsTemp);
         }
         if(isSalesRep){
@@ -309,9 +334,11 @@ public without sharing class GTMPathFinderHelper {
     List<GTM__c> gtms = new  List<GTM__c>();
     Id userId = userInfo.getUserId();
         gtms = [SELECT ID,Name,Fiscal_Year__c,Email__c from GTM__c where Fiscal_Year__c=:year and Sales_Org__c=:salesOrg.Id and Sales_Rep__c=:userId];
-        User userDetails =[SELECT Id, Name, Email, Profile.Name, UserRole.Id,UserRole.Name FROM User where Id=:userId ];
+        //Fetch UGDN for Combination Key logic by priyanka(SKI)
+        User userDetails =[SELECT Id, Name, Email, Profile.Name, UserRole.Id,UserRole.Name,UGDN_Number__c FROM User where Id=:userId ];
         GTM__c gtm = new GTM__c();
-        if(gtms.size()==0){
+        //Validating Year By Priyanka(SKI)
+        if(gtms.size()==0 && validateYear(year)){
             gtm.Fiscal_Year__c = year;
             gtm.GTM_Status__c = 'Draft';
             gtm.Sales_Org__c = salesOrg.Id;
@@ -319,6 +346,7 @@ public without sharing class GTMPathFinderHelper {
             gtm.Sales_Rep_Name__c = userInfo.getName();
             gtm.Role__c = userDetails.UserRole.Name;
             gtm.Email__c=userDetails.Email;
+            gtm.Combination_key__c = userDetails.UGDN_Number__c+year+salesOrg.Sales_Org_Code__c; //Combination Key Logic By Priyanka(SKI)
             if(Schema.sObjectType.GTM__c.isCreateable() && isSalesRep){
                 System.debug('Create GTM');
                 insert gtm;
@@ -328,7 +356,8 @@ public without sharing class GTMPathFinderHelper {
             }
         }
         List<GTM_Details__c> gtmPotentialProfile = new List<GTM_Details__c>();
-        if(GTMPathFinder.isGTMProfileAndPotentialCreated(year)==false){
+        //Checked for Sales rep By Priyanka(SKI)
+        if(GTMPathFinder.isGTMProfileAndPotentialCreated(year)==false && isSalesRep){
             GTMPathFinderHelper.createGTMPotentialAndProfile(gtms[0]);
         }
         gtmPotentialProfile = GTMPathFinder.getGTMPotentialProfile(year);
@@ -349,6 +378,7 @@ public without sharing class GTMPathFinderHelper {
             gtmd.Sales_Org__c=salesorg.Id;
             gtmd.Is_Duplicate_GTM_Record__c =false; //Line is added by Naresh Kumar Ey teams
             gtmd.GTM_Details__c = mapPotentialProfile.get(acc.Id).Id;
+            gtmd.Combination_key__c = acc.SAP_Code__c+'Competition'+gtms[0].Fiscal_Year__c;//Combination Key Logic By Priyanka(SKI)
             gtmDetailstToInsert.add(gtmd);
 
         }
@@ -364,19 +394,20 @@ public without sharing class GTMPathFinderHelper {
 
   public static void createOutlookDetails(GTM__c gtm,String gtmOutlookRecordType,List<Account> accList){
     List<GTM_Details__c> gtmPotentialProfile = new List<GTM_Details__c>();
-         if(GTMPathFinder.isGTMProfileAndPotentialCreated(fiscalyear)==false && isSalesRep){
+    //Fiscal Year logic was not populated properly By Priyanka(SKI)
+         if(GTMPathFinder.isGTMProfileAndPotentialCreated(gtm.Fiscal_Year__c)==false && isSalesRep){
           GTMPathFinderHelper.createGTMPotentialAndProfile(gtm);
          }
-         gtmPotentialProfile = GTMPathFinder.getGTMPotentialProfile(fiscalyear);
+         gtmPotentialProfile = GTMPathFinder.getGTMPotentialProfile(gtm.Fiscal_Year__c); //Changed iscal year by Priyanka(SKI)
           Map<String,GTM_Details__c> mapPotentialProfile = new  Map<String,GTM_Details__c>();
 
          for(GTM_Details__c gtm1:gtmPotentialProfile){
            mapPotentialProfile.put(gtm1.GTM_Customer__c,gtm1);
           }	
-
+          // Fiscal Year Changed By Priyanka(SKI)
           List<GTM_Details__c> gtmDetailsList = [Select Id, GTM_Customer__r.Name, GTM_Customer__c,GTM_Customer__r.Lead_Customer__c, Estimated_Growth_NY_to_2NY__c,Estimated_Growth_PY_to_CY__c, GTM_Details__r.Total_Purchase_of_Crop_Protection_PY__c,
-          Estimated_Growth_PY_to_NY__c, Sales_Org__c,GTM_Customer__r.Path_Finder__c,isSubmitted__c,GTM_Customer__r.recordTypeId,IS_Duplicate_GTM_Record__c from GTM_Details__c 
-                                 WHERE GTM__r.Fiscal_Year__c=:fiscalYear AND recordTypeId=:gtmOutlookRecordType AND 
+          Estimated_Growth_PY_to_NY__c, Sales_Org__c,GTM_Customer__r.Path_Finder__c,isSubmitted__c,GTM_Customer__r.recordTypeId from GTM_Details__c 
+                                 WHERE GTM__r.Fiscal_Year__c=:gtm.Fiscal_Year__c AND recordTypeId=:gtmOutlookRecordType AND 
                                        Sales_Org__r.Sales_Org_Code__c=:salesorg.Sales_Org_Code__c AND 
                                        GTM__r.Sales_Rep__c=:userInfo.getUserId()];
         
@@ -392,6 +423,7 @@ public without sharing class GTMPathFinderHelper {
                    gtmDetailsTemp.Sales_Org__c = salesorg.Id;
                    gtmDetailsTemp.GTM__c = gtm.Id;
                    gtmDetailsTemp.GTM_Details__c = mapPotentialProfile.get(acc.Id).Id;
+                   gtmDetailsTemp.Combination_key__c = acc.SAP_Code__c+'Outlook'+gtm.Fiscal_Year__c; //Combination Key Logic By Priyanka(SKI)
                    gtmDetailsList.add(gtmDetailsTemp);
           }
           insert gtmDetailsList;
@@ -450,11 +482,12 @@ public without sharing class GTMPathFinderHelper {
         }
     }
     
-    @AuraEnabled
+    @AuraEnabled(cacheable=true)
     public static GTM_Country_Configuration__c getInstructions(){
         List<GTM_Country_Configuration__c> gcc = null; 
         if(Schema.sObjectType.GTM_Country_Configuration__c.isAccessible()){
-            gcc = [select Id,Name ,Instruction_Profile_Potential__c,Instruction_Product_Category_Allocatio__c,Instruction_Crop_Allocation__c,Instruction_Competitor__c,Instruction_Identification__c,Instruction_FAQ__c,Instruction_Outlook__c,Countries__c from GTM_Country_Configuration__c where Sales_Org__c=:salesOrg.Id];
+            //UPL Competitor was added for Display name logic By priyanka(SKI)
+            gcc = [select Id,Name ,Instruction_Profile_Potential__c,Instruction_Product_Category_Allocatio__c,Instruction_Crop_Allocation__c,Instruction_Competitor__c,Instruction_Identification__c,Instruction_FAQ__c,Instruction_Outlook__c,Countries__c,UPL_Competitor__c from GTM_Country_Configuration__c where Sales_Org__c=:salesOrg.Id];
         }
         if(gcc.size()>0){
             return gcc[0];
@@ -478,8 +511,12 @@ public without sharing class GTMPathFinderHelper {
 
    @AuraEnabled(cacheable=true)
    public static string getMyProfile(){
-        User userDetails =[SELECT Id, Name, Email, Profile.Name, UserRole.Id,UserRole.Name FROM User where Id=:UserInfo.getUserId() ];
+    //Fetched UGDN from user by Priyanka(SKI)
+        User userDetails =[SELECT Id, Name, Email, Profile.Name, UserRole.Id,UserRole.Name,UGDN_Number__c FROM User where Id=:UserInfo.getUserId() ];
         return userDetails.Profile.Name;
    }
-  
+  //Validating Fiscal Year format (By Priyanka SKI)
+   public static boolean validateYear(String year){
+        return year.contains('-');
+   }
 }

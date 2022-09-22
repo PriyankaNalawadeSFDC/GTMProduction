@@ -44,6 +44,7 @@ export default class GtmCompetition extends LightningElement {
     disableAll = false;
     @track gtmDetailsToDisable=[];
     showLoading = false;
+    uplName = '';   //Added for Display name logic By Priyanka(SKI)
 
     @track labels = {
         Customer_Lead_Customer: Customer_Lead_Customer,
@@ -142,13 +143,22 @@ export default class GtmCompetition extends LightningElement {
     @wire(getInstructions1) getInstruction({ error, data }) {
         if (data) {
             this.instrustions = data.Instruction_Competitor__c;
+            //Fetched UPL Competitor Value By Priyanka(SKI)
+            this.uplName = data.UPL_Competitor__c;
+            console.log('this.instrustions UPL Name' , this.uplName);
         }
     }
 
    
     countryLocale = 'es-AR'
     constructor() {
-        super()
+        super();
+          //Fetched UPL Competitor Value and store it in UplName for Display name logic By Priyanka(SKI)
+        getInstructions1().then(data => {
+            this.instrustions = data.Instruction_Competitor__c;
+            this.uplName = data.UPL_Competitor__c;
+            console.log('Constructor UPL Name' , this.uplName);
+        })
         getUser().then(user => {
             console.log('Country user ', user);
             if (user) {
@@ -400,7 +410,8 @@ disableInputs(){
         let tempIndicate8=this.gtmcompetitor[gtmIndex].Indicate8;
        
         console.log('optionValue ', optionValue);
-        if (optionValue == 'UPL') {
+        //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+        if (optionValue == this.uplName) {
            
             updateshare({ recordId: id,value:value }).then(data => {
                 console.log('Empty UPL and UPL share wallet', data);
@@ -410,8 +421,8 @@ disableInputs(){
         if (name == 'Competitor_Name_1__c') {
             this.gtmcompetitor[gtmIndex].Competitor1 = value != 'none' ? value : null;
             this.gtmcompetitor[gtmIndex].Competitor1Name = this.statusOptions.filter(op => String(op.value) == String(value))[0].label;
-          
-             if( this.gtmcompetitor[gtmIndex].Competitor1Name.toLowerCase()=='UPL'.toLowerCase())
+            //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+             if( this.gtmcompetitor[gtmIndex].Competitor1Name.toLowerCase()==this.uplName.toLowerCase())
              {           
                 this.gtmcompetitor[gtmIndex].uplposition=1;   
               
@@ -428,7 +439,8 @@ disableInputs(){
             if((Number(tempIndicate2))<=Number(value)|| this.isEmpty((tempIndicate2))){
                 this.gtmcompetitor[gtmIndex].Indicate1 = this.gtmcompetitor[gtmIndex].Competitor1?value:value=null;
                 this.gtmcompetitor[gtmIndex].validateIndicator1 = value?false:value==null?false:true;
-                if( this.gtmcompetitor[gtmIndex].Competitor1Name.toLowerCase()=='UPL'.toLowerCase())
+                  //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+                if( this.gtmcompetitor[gtmIndex].Competitor1Name.toLowerCase()==this.uplName.toLowerCase())
                 {
                  this.gtmcompetitor[gtmIndex].uplshare =this.gtmcompetitor[gtmIndex].Indicate1;
                
@@ -446,7 +458,8 @@ disableInputs(){
         if (name == 'Competitor_Name_2__c') {
             this.gtmcompetitor[gtmIndex].Competitor2 = value != 'none' ? value : null;
             this.gtmcompetitor[gtmIndex].Competitor2Name = this.statusOptions.filter(op => String(op.value) == String(value))[0].label;
-            if( this.gtmcompetitor[gtmIndex].Competitor2Name.toLowerCase()=='UPL'.toLowerCase())
+              //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+            if( this.gtmcompetitor[gtmIndex].Competitor2Name.toLowerCase()==this.uplName.toLowerCase())
              {
                 this.gtmcompetitor[gtmIndex].uplposition=2;   
                 
@@ -463,7 +476,8 @@ disableInputs(){
             if(Number(tempIndicate1>=Number(value))&&((tempIndicate3)<=Number(value))||((this.isEmpty((tempIndicate3)))&&(Number((tempIndicate1)>=Number(value)))||(this.isEmpty(tempIndicate1)))){
                 this.gtmcompetitor[gtmIndex].Indicate2 = this.gtmcompetitor[gtmIndex].Competitor2?value:value=null;
                 this.gtmcompetitor[gtmIndex].validateIndicator2 = value?false:value==null?false:true;
-                if( this.gtmcompetitor[gtmIndex].Competitor2Name.toLowerCase()=='UPL'.toLowerCase())
+                  //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+                if( this.gtmcompetitor[gtmIndex].Competitor2Name.toLowerCase()==this.uplName.toLowerCase())
                 {
                  this.gtmcompetitor[gtmIndex].uplshare =this.gtmcompetitor[gtmIndex].Indicate2;
                
@@ -478,8 +492,8 @@ disableInputs(){
         if (name == 'Competitor_Name_3__c') {
             this.gtmcompetitor[gtmIndex].Competitor3 = value != 'none' ? value : null;
             this.gtmcompetitor[gtmIndex].Competitor3Name = this.statusOptions.filter(op => String(op.value) == String(value))[0].label;
-
-            if( this.gtmcompetitor[gtmIndex].Competitor3Name.toLowerCase()=='UPL'.toLowerCase())
+              //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+            if( this.gtmcompetitor[gtmIndex].Competitor3Name.toLowerCase()==this.uplName.toLowerCase())
              {
                 this.gtmcompetitor[gtmIndex].uplposition=3;   
                
@@ -494,8 +508,8 @@ disableInputs(){
             if(Number((tempIndicate2)>=Number(value))&&((tempIndicate4)<=Number(value))||((this.isEmpty((tempIndicate4)))&&(Number((tempIndicate2)>=Number(value)))||(this.isEmpty(tempIndicate2)&&(Number((tempIndicate1)>=Number(value)))))){
                 this.gtmcompetitor[gtmIndex].Indicate3 = this.gtmcompetitor[gtmIndex].Competitor3?value:value=null;
                 this.gtmcompetitor[gtmIndex].validateIndicator3 = value?false:value==null?false:true;
-
-                if( this.gtmcompetitor[gtmIndex].Competitor3Name.toLowerCase()=='UPL'.toLowerCase())
+                  //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+                if( this.gtmcompetitor[gtmIndex].Competitor3Name.toLowerCase()==this.uplName.toLowerCase())
                 {
                  this.gtmcompetitor[gtmIndex].uplshare =this.gtmcompetitor[gtmIndex].Indicate3;
                 
@@ -509,7 +523,8 @@ disableInputs(){
         } if (name == 'Competitor_Name_4__c') {
             this.gtmcompetitor[gtmIndex].Competitor4 = value != 'none' ? value : null;
             this.gtmcompetitor[gtmIndex].Competitor4Name = this.statusOptions.filter(op => String(op.value) == String(value))[0].label;
-            if( this.gtmcompetitor[gtmIndex].Competitor4Name.toLowerCase()=='UPL'.toLowerCase())
+              //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+            if( this.gtmcompetitor[gtmIndex].Competitor4Name.toLowerCase()==this.uplName.toLowerCase())
             {
                this.gtmcompetitor[gtmIndex].uplposition=4;   
                
@@ -524,7 +539,8 @@ disableInputs(){
 
                 this.gtmcompetitor[gtmIndex].Indicate4 = this.gtmcompetitor[gtmIndex].Competitor4?value:value=null;
                 this.gtmcompetitor[gtmIndex].validateIndicator4 = value?false:value==null?false:true;
-                if( this.gtmcompetitor[gtmIndex].Competitor4Name.toLowerCase()=='UPL'.toLowerCase())
+                  //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+                if( this.gtmcompetitor[gtmIndex].Competitor4Name.toLowerCase()==this.uplName.toLowerCase())
                 {
                  this.gtmcompetitor[gtmIndex].uplshare =this.gtmcompetitor[gtmIndex].Indicate4;
              
@@ -541,8 +557,8 @@ disableInputs(){
         if (name == 'Competitor_Name_5__c') {
             this.gtmcompetitor[gtmIndex].Competitor5 = value != 'none' ? value : null;
             this.gtmcompetitor[gtmIndex].Competitor5Name = this.statusOptions.filter(op => String(op.value) == String(value))[0].label;
-
-            if( this.gtmcompetitor[gtmIndex].Competitor5Name.toLowerCase()=='UPL'.toLowerCase())
+              //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+            if( this.gtmcompetitor[gtmIndex].Competitor5Name.toLowerCase()==this.uplName.toLowerCase())
              {
                 this.gtmcompetitor[gtmIndex].uplposition=5;   
                 
@@ -556,7 +572,8 @@ disableInputs(){
             if(Number((tempIndicate4)>=Number(value))&&((tempIndicate6)<=Number(value))||((this.isEmpty((tempIndicate6)))&&(Number((tempIndicate4)>=Number(value)))||(this.isEmpty(tempIndicate4)))){
                 this.gtmcompetitor[gtmIndex].Indicate5 = this.gtmcompetitor[gtmIndex].Competitor5?value:value=null;
                 this.gtmcompetitor[gtmIndex].validateIndicator5 = value?false:value==null?false:true;
-                if( this.gtmcompetitor[gtmIndex].Competitor5Name.toLowerCase()=='UPL'.toLowerCase())
+                  //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+                if( this.gtmcompetitor[gtmIndex].Competitor5Name.toLowerCase()==this.uplName.toLowerCase())
                 {
                  this.gtmcompetitor[gtmIndex].uplshare =this.gtmcompetitor[gtmIndex].Indicate5;
               
@@ -570,8 +587,8 @@ disableInputs(){
         if (name == 'Competitor_Name_6__c') {
             this.gtmcompetitor[gtmIndex].Competitor6 = value != 'none' ? value : null;
             this.gtmcompetitor[gtmIndex].Competitor6Name = this.statusOptions.filter(op => String(op.value) == String(value))[0].label;
-
-            if( this.gtmcompetitor[gtmIndex].Competitor6Name.toLowerCase()=='UPL'.toLowerCase())
+              //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+            if( this.gtmcompetitor[gtmIndex].Competitor6Name.toLowerCase()==this.uplName.toLowerCase())
              {
                 this.gtmcompetitor[gtmIndex].uplposition=6;   
                  
@@ -583,7 +600,8 @@ disableInputs(){
             if(Number((tempIndicate5)>=Number(value))&&((tempIndicate7)<=Number(value))||((this.isEmpty((tempIndicate7)))&&(Number((tempIndicate5)>=Number(value)))||(this.isEmpty(tempIndicate5)))){
                 this.gtmcompetitor[gtmIndex].Indicate6 = this.gtmcompetitor[gtmIndex].Competitor6?value:value=null;
                 this.gtmcompetitor[gtmIndex].validateIndicator6 = value?false:value==null?false:true;
-                if( this.gtmcompetitor[gtmIndex].Competitor6Name.toLowerCase()=='UPL'.toLowerCase())
+                  //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+                if( this.gtmcompetitor[gtmIndex].Competitor6Name.toLowerCase()==this.uplName.toLowerCase())
                 {
                  this.gtmcompetitor[gtmIndex].uplshare =this.gtmcompetitor[gtmIndex].Indicate6;
              
@@ -598,7 +616,8 @@ disableInputs(){
             this.gtmcompetitor[gtmIndex].Competitor7 = value != 'none' ? value : null;
            
             this.gtmcompetitor[gtmIndex].Competitor7Name = this.statusOptions.filter(op => String(op.value) == String(value))[0].label;
-            if( this.gtmcompetitor[gtmIndex].Competitor7Name.toLowerCase()=='UPL'.toLowerCase())
+              //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+            if( this.gtmcompetitor[gtmIndex].Competitor7Name.toLowerCase()==this.uplName.toLowerCase())
              {
                 this.gtmcompetitor[gtmIndex].uplposition=7;   
                  
@@ -613,7 +632,8 @@ disableInputs(){
             if(Number((tempIndicate6)>=Number(value))&&((tempIndicate8)<=Number(value))||((this.isEmpty((tempIndicate8)))&&(Number((tempIndicate6)>=Number(value)))||(this.isEmpty(tempIndicate6)))){
                 this.gtmcompetitor[gtmIndex].Indicate7 = this.gtmcompetitor[gtmIndex].Competitor7?value:value=null;
                 this.gtmcompetitor[gtmIndex].validateIndicator7 = value?false:value==null?false:true;
-                if( this.gtmcompetitor[gtmIndex].Competitor7Name.toLowerCase()=='UPL'.toLowerCase())
+                  //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+                if( this.gtmcompetitor[gtmIndex].Competitor7Name.toLowerCase()==this.uplName.toLowerCase())
                 {
                  this.gtmcompetitor[gtmIndex].uplshare =this.gtmcompetitor[gtmIndex].Indicate7;
                 }
@@ -628,7 +648,8 @@ disableInputs(){
             console.log('Competitor_Name_8__c');
             this.gtmcompetitor[gtmIndex].Competitor8 = value != 'none' ? value : null;
             this.gtmcompetitor[gtmIndex].Competitor8Name = this.statusOptions.filter(op => String(op.value) == String(value))[0].label;
-            if( this.gtmcompetitor[gtmIndex].Competitor8Name.toLowerCase()=='UPL'.toLowerCase())
+              //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+            if( this.gtmcompetitor[gtmIndex].Competitor8Name.toLowerCase()==this.uplName.toLowerCase())
              {
                 this.gtmcompetitor[gtmIndex].uplposition=8;   
                  
@@ -640,7 +661,8 @@ disableInputs(){
             if(Number(tempIndicate7)>=Number(value) ||(this.isEmpty(tempIndicate7))){
                 this.gtmcompetitor[gtmIndex].Indicate8 = this.gtmcompetitor[gtmIndex].Competitor8?value:value=null;
                 this.gtmcompetitor[gtmIndex].validateIndicator8 = value?false:value==null?false:true;
-                if( this.gtmcompetitor[gtmIndex].Competitor8Name.toLowerCase()=='UPL'.toLowerCase())
+                  //Removed HardCoded UPL for Display name logic by Priyanka(SKI)
+                if( this.gtmcompetitor[gtmIndex].Competitor8Name.toLowerCase()==this.uplName.toLowerCase())
                 {
                  this.gtmcompetitor[gtmIndex].uplshare =this.gtmcompetitor[gtmIndex].Indicate8;
                 }
@@ -858,12 +880,18 @@ disableInputs(){
 
     handleFiltersAction(event) {
         let filtersValue = JSON.parse(JSON.stringify(event.detail));
+        //Added for Loading time by Priyanka(SKI)
+        this.showLoading = true;
+        setTimeout(() => {
         this.applyFiltersOnCustomer(filtersValue);
+         //Added for Loading time (stop) by Priyanka(SKI)
+            this.showLoading = false;
+        }, 200);
     }
 
 
     applyFiltersOnCustomer(filtersValue) {
-        this.showLoading = true;
+        // this.showLoading = true;
         this.template.querySelector('c-pagination-cmp').pagevalue = 1;
        
         console.log('filtersValue -------------->', filtersValue);
@@ -1000,7 +1028,8 @@ disableInputs(){
                 obj.remainingOptions8 = obj.options;
             }
         }
-        if (String(obj.Competitor1Name).toLowerCase() == 'UPL'.toLowerCase() || String(obj.Competitor2Name).toLowerCase() == 'UPL'.toLowerCase() || String(obj.Competitor3Name).toLowerCase() == 'UPL'.toLowerCase() || String(obj.Competitor4Name).toLowerCase() == 'UPL'.toLowerCase() || String(obj.Competitor5Name).toLowerCase() == 'UPL'.toLowerCase() || String(obj.Competitor6Name).toLowerCase() == 'UPL'.toLowerCase() || String(obj.Competitor7Name).toLowerCase() == 'UPL'.toLowerCase() || String(obj.Competitor8Name).toLowerCase() == 'UPL'.toLowerCase()) {
+        //Replaced hardcoded UPL for display name logic in competitor by Priyanka(SKI)
+        if (String(obj.Competitor1Name).toLowerCase() == this.uplName.toLowerCase() || String(obj.Competitor2Name).toLowerCase() == this.uplName.toLowerCase() || String(obj.Competitor3Name).toLowerCase() == this.uplName.toLowerCase() || String(obj.Competitor4Name).toLowerCase() == this.uplName.toLowerCase() || String(obj.Competitor5Name).toLowerCase() == this.uplName.toLowerCase() || String(obj.Competitor6Name).toLowerCase() == this.uplName.toLowerCase() || String(obj.Competitor7Name).toLowerCase() == this.uplName.toLowerCase() || String(obj.Competitor8Name).toLowerCase() == this.uplName.toLowerCase()) {
             obj.isUPLSelected = true
             
             //obj.uplposition = '';
@@ -1026,7 +1055,8 @@ disableInputs(){
         let uplshare =  isNaN(Number(obj.uplshare))?0:Number(obj.uplshare);
         let initialPercentage = NaN;
          initialPercentage =  initialPercentage || 0;
-         if (String(obj.Competitor1Name).toLowerCase() == 'UPL'.toLowerCase() || String(obj.Competitor2Name).toLowerCase() == 'UPL'.toLowerCase() || String(obj.Competitor3Name).toLowerCase() == 'UPL'.toLowerCase() || String(obj.Competitor4Name).toLowerCase() == 'UPL'.toLowerCase() || String(obj.Competitor5Name).toLowerCase() == 'UPL'.toLowerCase() || String(obj.Competitor6Name).toLowerCase() == 'UPL'.toLowerCase() || String(obj.Competitor7Name).toLowerCase() == 'UPL'.toLowerCase() || String(obj.Competitor8Name).toLowerCase() == 'UPL'.toLowerCase()) {
+           //Replaced hardcoded UPL for display name logic in competitor by Priyanka(SKI)
+         if (String(obj.Competitor1Name).toLowerCase() == this.uplName.toLowerCase() || String(obj.Competitor2Name).toLowerCase() == this.uplName.toLowerCase() || String(obj.Competitor3Name).toLowerCase() == this.uplName.toLowerCase() || String(obj.Competitor4Name).toLowerCase() == this.uplName.toLowerCase() || String(obj.Competitor5Name).toLowerCase() == this.uplName.toLowerCase() || String(obj.Competitor6Name).toLowerCase() == this.uplName.toLowerCase() || String(obj.Competitor7Name).toLowerCase() == this.uplName.toLowerCase() || String(obj.Competitor8Name).toLowerCase() == this.uplName.toLowerCase()) {
           uplshare=0;
 
          initialPercentage = indicator1 + indicator2 + indicator3 +indicator4 +indicator5 +indicator6 +indicator7 + indicator8 + uplshare; 

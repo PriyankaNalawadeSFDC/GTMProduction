@@ -10,7 +10,10 @@
 *-------------------------------------------------------------------------------------------
 *  1.0              Sandeep             03/08/2022           Initial Creation    
 *-------------------------------------------------------------------------------------------
-*  1.1              Sandeep             14/08/2022           update (Adding Helper class)                                         
+*  1.1              Sandeep             14/08/2022           update (Adding Helper class)  
+*-------------------------------------------------------------------------------------------
+*  1.2              Priyanka             26/08/2022           update (Adding Combination Key Logic)  
+
 *******************************************************************************************/
 @isTest
 public without sharing class GTMPathFinderTest {
@@ -109,12 +112,14 @@ public without sharing class GTMPathFinderTest {
             a.recordTypeId = nonleadcustomerRecordType;
             a.Country__c = 'Other';
             a.Lead_Customer_Ownership__c = loggedInUserId;
+            a.SAP_code__c = 'A1';
             insert a;
             GTM__c gtm = new GTM__c();
             gtm.Fiscal_Year__c = fiscalYear;
             gtm.GTM_Status__c = 'Draft';
             gtm.Sales_Org__c = salesOrg.Id;
             gtm.Sales_Rep__c = loggedInUserId;
+            gtm.Combination_Key__c = 'UGDN'+fiscalYear+salesOrg.Sales_Org_Code__c; //Combination Key Logic added 
             insert gtm;
             GTM__C g = GTMPathFinder.getGTM(gtm.Id);
             System.assert(g!= null, 'GTM Found');
@@ -158,6 +163,7 @@ public without sharing class GTMPathFinderTest {
             gtmAccount.Account_Type__c = 'Sold To Party';
             gtmAccount.Sales_Org__c = salesOrg.Id;
             gtmAccount.Country__c = 'Other';
+            gtmAccount.SAP_code__c = 'A1'+i;    //SAP Code added for account
             //gtmAccount.PersonMobilePhone='1212121212';
             if (math.mod(i, 2) == 0) { //Lead Customer
                 gtmAccount.Lead_Customer__c = '001';
@@ -180,7 +186,7 @@ public without sharing class GTMPathFinderTest {
     */
     public static Login_Country__c createLoginCountry() {
         Login_Country__c loginCountry = new Login_Country__c();
-        loginCountry.Name = 'Argentina';
+        loginCountry.Name = 'Brazil';
         loginCountry.Sales_Org_Code__c = '5631';
         insert loginCountry;
         return loginCountry;
@@ -196,6 +202,7 @@ public without sharing class GTMPathFinderTest {
         Product_Category__c productCategory1 = new Product_Category__c();
         productCategory1.Name = 'Product1';
         productCategory1.Status__c = 'Active';
+        productCategory1.Product_Category_Code__c = 'PC-001';
         insert productCategory1;
 
         Product_Category_Sales_Org_Mapping__c pcsm1 = new Product_Category_Sales_Org_Mapping__c();
@@ -209,6 +216,7 @@ public without sharing class GTMPathFinderTest {
         Product_Category__c productCategory2 = new Product_Category__c();
         productCategory2.Name = 'Product2';
         productCategory2.Status__c = 'Active';
+        productCategory2.Product_Category_Code__c = 'PC-002';
         insert productCategory2;
 
         Product_Category_Sales_Org_Mapping__c pcsm2 = new Product_Category_Sales_Org_Mapping__c();
@@ -232,6 +240,7 @@ public without sharing class GTMPathFinderTest {
         crop1.Name = 'crop1';
         crop1.GTM_Status__c = 'Active';
         crop1.SalesOrg__c = salesOrg.Id;
+        crop1.Crop_code__c = 'c001';
         crop1.Category_Index__c = 1;
         insert crop1;
         Crop__c crop2 = new Crop__c();
@@ -239,6 +248,7 @@ public without sharing class GTMPathFinderTest {
         crop2.GTM_Status__c = 'Active';
         crop2.SalesOrg__c = salesOrg.Id;
         crop2.Category_Index__c = 2;
+        crop1.Crop_code__c = 'c002';
         insert crop2;
         crops.add(crop1);
         crops.add(crop2);
@@ -258,12 +268,13 @@ public without sharing class GTMPathFinderTest {
             EmailEncodingKey = 'UTF-8',
             LanguageLocaleKey = 'en_US',
             LocaleSidKey = 'en_US',
-            Country = 'Argentina'
+            UGDN_Number__c = 'UGDNArgentia',
+            Country = 'Brazil'
         );
         insert argentinaUsr;
         return argentinaUsr;
     }
-     
+    
     //Changes for RITM0370177 By ET Team
     @isTest
     public static void testUpdateGtmDetailsPath(){  
@@ -280,7 +291,7 @@ public without sharing class GTMPathFinderTest {
             GTM__C upGtm = gtm;
             upGtm.isSubmitted__c =false;
             update upGtm;
-            
+        
             upGtm.isSubmitted__c =true;
             update upGtm;
             System.assertEquals(gtm.isSubmitted__c, true);

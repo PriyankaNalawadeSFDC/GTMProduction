@@ -194,7 +194,7 @@ export default class GtmPotentialAndProfile extends LightningElement {
                         storiesChannelHas: ele.Number_of_Stores_That_the_Channel_Has__c,
                         status: '',
                         numberOfFieldsFilled: '',
-                        isLeadCustomer: ele.GTM_Customer__r.RecordTypeId==this.leadRecordTypeId ? true : false,
+                        isLeadCustomer: ele.GTM_Customer__r.RecordTypeId==this.leadRecordTypeId ? false : true, // getting distributor record type instead of lead record type By priyanka(SKI)
                         confirmEstimatedRevenue: `${this.labels.The_total_farm_gate_revenues_are_USD}  ${Number(tempValue).toLocaleString(this.countryLocale)} ${this.labels.USD_Million}	
                         `,
                         pathFinder: ele.GTM_Customer__r.Path_Finder__c,
@@ -240,6 +240,14 @@ export default class GtmPotentialAndProfile extends LightningElement {
                 this.fiscalYear = fiscalyear.replace('-20', '/');
             });
         }
+        //higher Hierarhy User should be able to see lower Hierarchy Users data in disable mode By Priyanka(SKI)
+        getGTMDetailsToDisable({recordTypeName:'Profile & Potential'}).then(gtmDetailsToDisable=>{
+            this.gtmDetailsToDisable = JSON.parse(JSON.stringify(gtmDetailsToDisable));
+            getLowerHierarchyRecordsToDisable({fiscalyear:this.fiscalYear,recordTypeName:'Profile & Potential'}).then(gtmDetailsOfLowerUser=>{
+                this.gtmDetailsToDisable.push(...JSON.parse(JSON.stringify(gtmDetailsOfLowerUser)));
+            })
+            console.log('gtmDetailsToDisable ',gtmDetailsToDisable);
+        }).catch(err=>console.log('gtmDetailsToDisable ',err));
         this.checkDataYear();
     }
 
@@ -551,7 +559,7 @@ export default class GtmPotentialAndProfile extends LightningElement {
             this.handleChangeStatusOnLoad(ele.id);
         })
         setTimeout(() => {
-            this.paginatedGtmPotentialProfile = JSON.parse(JSON.stringify(this.gtmPotentialProfile));
+        this.paginatedGtmPotentialProfile = JSON.parse(JSON.stringify(this.gtmPotentialProfile));
             this.updateStatusLabel();
             this.showLoading = false;
         }, 200);

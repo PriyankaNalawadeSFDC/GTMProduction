@@ -13,7 +13,6 @@
       </div>
     </div>
   </div>
-  
   <c-gtm-filter-panel onaction={handleFiltersAction} panel-status={panelStatus}></c-gtm-filter-panel>
 
   <div class="table-scroll" style="height:300px; margin-top:15px;">
@@ -55,7 +54,7 @@
         </tr>
       </thead>
       <tbody>
-        <template  for:each={paginatedGtmPotentialProfile} for:item="gtm" for:index="index">
+        <template for:each={paginatedGtmPotentialProfile} for:item="gtm" for:index="index">
           <tr  key={gtm.id}>
             <td class="slds-truncate fix" style="width: 150px;" title={gtm.client}>{gtm.client}</td>
             <td >{gtm.customerType}</td>

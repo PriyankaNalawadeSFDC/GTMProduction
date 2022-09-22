@@ -38,6 +38,19 @@ private class GtmLeadCustomer_Test {
         logCountryObj.For_Contry__c ='Argentina';
         logCountryObj.Sales_Org_Code__c ='5631';
         insert logCountryObj;
+        
+        //Dummy Login Country created for Mexico by Priyanka(SKI)
+        Login_Country__c logCountryObjMexico = new Login_Country__c();
+        logCountryObjMexico.Name ='Mexico'; 
+        logCountryObjMexico.For_Contry__c ='Mexico';
+        logCountryObjMexico.Sales_Org_Code__c ='5631';
+        insert logCountryObjMexico;
+         //Dummy Login Country created for Brazil by Priyanka(SKI)
+        Login_Country__c logCountryObjBrazil = new Login_Country__c();
+        logCountryObjBrazil.Name ='Brazil'; 
+        logCountryObjBrazil.For_Contry__c ='Brazil';
+        logCountryObjBrazil.Sales_Org_Code__c ='5631';
+        insert logCountryObjBrazil;
             
         
         
@@ -166,11 +179,11 @@ private class GtmLeadCustomer_Test {
                 System.debug('Error Line '+ex.getLineNumber());
                 System.debug('Error msg '+ex.getMessage());
             }
-           
-   
-            
+      
         }
+          
         
+       
         
         
     }

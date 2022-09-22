@@ -2,10 +2,34 @@
 private class GTMOutlookTest{
     public static User argentinaUser = createuser();
     static testMethod void validateData(){
+        testFun();
+    }   
+    public static User createuser() {
+        User argentinaUsr = new User(
+            ProfileId = [SELECT Id FROM Profile WHERE Name = 'Territory Manager Argentina'].Id,
+            LastName = 'Santiago',
+            Email = 'sandeep.vishwakarma@skinternational.com',
+            Username = 'test@test.com' + System.currentTimeMillis(),
+            CompanyName = 'SK international',
+            Title = 'title',
+            Alias = 'alias',
+            TimeZoneSidKey = 'America/Los_Angeles',
+            EmailEncodingKey = 'UTF-8',
+            LanguageLocaleKey = 'en_US',
+            LocaleSidKey = 'en_US',
+            Country = 'Argentina',
+            UGDN_Number__c = 'UGDN'
+        );
+        insert argentinaUsr;
+        return argentinaUsr;
+    }
+    //To avoid issue related to DML operation on setup object - permitted after you have updated a non-setup object (or vice versa)
+    @future
+    public static void testFun(){
         Id gtmOutlookRecordType = Schema.SObjectType.GTM_Details__c.getRecordTypeInfosByName().get('Outlook').getRecordTypeId();
         Id disstributorRecordTypeId = Schema.SObjectType.Account.getRecordTypeInfosByName().get('Distributor').getRecordTypeId();
         Id leadCustomerRecordLead = Schema.SObjectType.Account.getRecordTypeInfosByName().get('Lead Customer').getRecordTypeId();
-        String year='2021-2022';
+        String year='2022-2023';
         Sales_Org__c salesOrgObj = new Sales_Org__c(
             Name='Argentina',
             Company_Code__c='5631',
@@ -23,9 +47,6 @@ private class GTMOutlookTest{
         
      
         
-        
-        System.runAs(argentinaUser){
-        
             Account accObj = new Account(
             Sales_Org__c = salesOrgObj.Id,                       // Sales Org
             Depot_Code__c = 'AR13',                              // Depot Code
@@ -37,26 +58,15 @@ private class GTMOutlookTest{
             //Lead_Customer__c = '9758',                         // Lead Customer
             Lead_Customer_Type__c = 'Dealer',                  // Lead Customer Type
             Lead_Customer_Ownership__c= argentinaUser.Id,
+            SAP_Code__c = 'A1',
             Path_Finder__c = false                               // Path Finder
         );
         insert accObj;
        
-         GTM__c  gtm=new GTM__c();
-            gtm.Fiscal_Year__c='2022-2023';
-            gtm.Email__c='prashant.kumbhar@skinternational.com';
-            gtm.GTM_Status__c='test';
-            gtm.Sales_Rep_Name__c='test';
-            gtm.Role__c='Manager';
-             insert gtm;
-         GTM_Details__c gtmdet =new GTM_Details__c(); 
-            gtmdet.GTM_Customer__c=accObj.id;
-            gtmdet.GTM__c = gtm.Id;
-            gtmdet.isSubmitted__c=True;
-            gtmdet.Is_Duplicate_GTM_Record__c = false; 
-            gtmdet.Sales_Org__c=salesOrgObj.Id;
-            gtmdet.RecordTypeId=gtmOutlookRecordType;
-            insert gtmdet;
-            GTMOutlook.getGTMOutlook(year);
+        System.runAs(argentinaUser){
+            
+        
+        GTMOutlook.getGTMOutlook(year);
        GTM_Details__c gtmDetails = [Select Id,RecordTypeId,Is_Duplicate_Gtm_Record__C From GTM_Details__c Where recordTypeId=:gtmOutlookRecordType and Is_Duplicate_GTM_Record__C = false];
      GTMOutlook.updateGtmDetails('Estimated_Growth_PY_to_CY__c', '123', gtmDetails.Id);
        GTMOutlook.updateGtmDetails('Estimated_Growth_PY_to_NY__c', '123', gtmDetails.Id);
@@ -64,23 +74,5 @@ private class GTMOutlookTest{
         GTMOutlook.getInstructions();
         GTMOutlook.getFaq();
         }
-    }   
-    public static User createuser() {
-        User argentinaUsr = new User(
-            ProfileId = [SELECT Id FROM Profile WHERE Name = 'Territory Manager Argentina'].Id,
-            LastName = 'Santiago',
-            Email = 'sandeep.vishwakarma@skinternational.com',
-            Username = 'test@test.com' + System.currentTimeMillis(),
-            CompanyName = 'SK international',
-            Title = 'title',
-            Alias = 'alias',
-            TimeZoneSidKey = 'America/Los_Angeles',
-            EmailEncodingKey = 'UTF-8',
-            LanguageLocaleKey = 'en_US',
-            LocaleSidKey = 'en_US',
-            Country = 'Argentina'
-        );
-        insert argentinaUsr;
-        return argentinaUsr;
     }
    }
